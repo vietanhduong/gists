@@ -1,0 +1,48 @@
+on: "Extract branch"
+
+jobs:
+  prepare:
+    runs-on: ubuntu-18.04
+    outputs:
+      current_branch: ${{ steps.current_branch.outputs.value }}
+      tag: ${{ steps.tag.outputs.value }}
+      is_tag: ${{ steps.tag.outputs.is_tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+       
+      - name: Current branch
+        id: current_branch
+        shell: bash
+        run: |
+          if [[ ! "$GITHUB_REF"  = "refs/tags/"* ]]; then
+            if [[ "$GITHUB_EVENT_NAME" = "pull_request" ]]; then
+              HEAD_REF=$(printf "%q" "$GITHUB_HEAD_REF")
+              HEAD_REF=${HEAD_REF/refs\/heads\//}
+              BRANCH=$HEAD_REF
+            else 
+              REF=$(printf "%q" "$GITHUB_REF")
+              REF_BRANCH=${REF/refs\/pull\//}
+              REF_BRANCH=${REF_BRANCH/refs\/heads\//}
+              BRANCH=$HEAD_REF
+            fi
+          else 
+            REF=$(printf "%q" "$GITHUB_REF")
+            REF_BRANCH=${REF/refs\/tags\//}
+            BRANCH=$REF_BRANCH
+          fi
+          echo "::set-output name=value::$BRANCH" 
+      
+      - name: Tag
+        id: tag
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF" = "refs/tags/"* ]]; then
+            REF=$(printf "%q" "$GITHUB_REF")
+            TAG=${REF/refs\/tags\//}
+            TAG=${TAG#v}
+            echo "::set-output name=value::$(eval printf "%s" "$TAG")"
+            echo "::set-output name=is_tag::true"
+          else
+            echo "::set-output name=is_tag::false"
+          fi
