@@ -24,7 +24,7 @@ jobs:
               REF=$(printf "%q" "$GITHUB_REF")
               REF_BRANCH=${REF/refs\/pull\//}
               REF_BRANCH=${REF_BRANCH/refs\/heads\//}
-              BRANCH=$HEAD_REF
+              BRANCH=$REF_BRANCH
             fi
           else 
             REF=$(printf "%q" "$GITHUB_REF")
